@@ -7,12 +7,13 @@ use Magento\Framework\View\Element\Template;
 /** @var PopupViewModel $viewModel */
 $viewModel = $block->getData('view_model');
 $popup = $viewModel->getPopup();
+$content = $popup->getContent();
+$newstr = str_replace('"','&quot;',$content);
 ?>
 <div data-bind="mageInit: {
         'Nakshatra_Popup/js/popup':{
             'timeout': <?= /* @noEscape */ $popup->getTimeout(); ?>,
-            'content': '<?= $popup->getContent(); ?>'
-        }}">
+            'content': `<?= $block->escapeHtml($newstr); ?>`,
+        }
+        }">
 </div>
-
-
