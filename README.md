@@ -1,4 +1,4 @@
-# Magento
+# Magento 2
 Magento 2 modules for community edition
 
 Show the latest offers or promotions on the frontend using Popup module.
