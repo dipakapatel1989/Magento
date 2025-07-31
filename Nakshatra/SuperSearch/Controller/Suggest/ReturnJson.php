@@ -13,8 +13,18 @@ use Nakshatra\SuperSearch\Block\GetProductUrl;
 class ReturnJson extends Action implements HttpGetActionInterface
 {
     private $resultJsonFactory;
-
     private $getProducts;
+    private GetProductImage $getProductImage;
+    private GetProductUrl $getProductUrl;
+    
+
+    /**
+     * @param JsonFactory $resultJsonFactory
+     * @param GetProducts $getProducts
+     * @param GetProductImage $getProductImage
+     * @param GetProductUrl $getProductUrl
+     * @param Context $context
+     */
 
     public function __construct(
         JsonFactory $resultJsonFactory,
