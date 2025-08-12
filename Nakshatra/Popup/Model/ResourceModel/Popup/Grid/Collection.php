@@ -2,11 +2,11 @@
 
 namespace Nakshatra\Popup\Model\ResourceModel\Popup\Grid;
 
-use Nakshatra\Popup\Model\ResourceModel\Popup\Collection as PopupCollection;
 use Magento\Framework\Api\Search\AggregationInterface;
 use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Nakshatra\Popup\Model\ResourceModel\Popup\Collection as PopupCollection;
 
 class Collection extends PopupCollection implements SearchResultInterface
 {
@@ -31,10 +31,9 @@ class Collection extends PopupCollection implements SearchResultInterface
         $resourceModel,
         TimezoneInterface $timeZone,
         $model = \Magento\Framework\View\Element\UiComponent\DataProvider\Document::class,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
-        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
-    )
-    {
+        ?\Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        ?\Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
+    ) {
         $this->_eventPrefix = $eventPrefix;
         $this->_eventObject = $eventObject;
         $this->_init($model, $resourceModel);
@@ -98,7 +97,7 @@ class Collection extends PopupCollection implements SearchResultInterface
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function setSearchCriteria(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria = null)
+    public function setSearchCriteria(?\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria = null)
     {
         return $this;
     }
@@ -132,7 +131,7 @@ class Collection extends PopupCollection implements SearchResultInterface
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function setItems(array $items = null)
+    public function setItems(?array $items = null)
     {
         return $this;
     }
