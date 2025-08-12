@@ -1,30 +1,30 @@
+// JavaScript
 import { useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
-import { GET_CATEGORIES } from '../graphql/queries'
+import { GET_PRODUCTS } from '../graphql/queries'
+import ProductCard from '../components/ProductCard'
 
 export default function Home() {
-  const { data, loading, error } = useQuery(GET_CATEGORIES, { variables: { pageSize: 12 } })
-
-  if (loading) return <p>Loading…</p>
-  if (error) return <p>Error: {error.message}</p>
+  const { data, loading, error } = useQuery(GET_PRODUCTS, {
+    variables: { pageSize: 12, currentPage: 1 }
+  })
 
   const products = data?.products?.items ?? []
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>New Products</h2>
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
-        {products.map(p => (
-          <Link key={p.uid} to={`/product/${p.url_key}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8 }}>
-              {p.small_image?.url && <img src={p.small_image.url} alt={p.name} style={{ width: '100%', height: 160, objectFit: 'cover' }} />}
-              <div style={{ marginTop: 8 }}>{p.name}</div>
-              <div style={{ fontWeight: 600 }}>
-                {p.price_range?.minimum_price?.final_price?.value} {p.price_range?.minimum_price?.final_price?.currency}
-              </div>
-            </div>
-          </Link>
-        ))}
+    <div>
+      <section className="hero">
+        <h1>Discover Products You’ll Love</h1>
+        <p>Hand-picked items. Fast checkout. Powered by Magento GraphQL.</p>
+      </section>
+
+      <div className="container">
+        {loading && <p>Loading…</p>}
+        {error && <p>Error: {error.message}</p>}
+        {!loading && !error && (
+          <div className="grid">
+            {products.map(p => <ProductCard key={p.uid} product={p} />)}
+          </div>
+        )}
       </div>
     </div>
   )

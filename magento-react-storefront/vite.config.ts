@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/graphql': {
-        target: 'http://magento284.test',
+        target: 'http://magento248.test',
         changeOrigin: true,
         secure: false,
       },
