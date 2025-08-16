@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useCartStore } from '../store/cart'
 import { GET_CART_SUMMARY } from '../graphql/queries'
 
+
 export default function CartDrawer({ open, onClose }) {
   const cartId = useCartStore(s => s.cartId)
   const { data, loading } = useQuery(GET_CART_SUMMARY, { variables: { cartId }, skip: !cartId })

@@ -35,6 +35,8 @@ export default function Home() {
                                 }}
                             />
                             <Link to="/category/all" className="btn">Shop all</Link>
+
+
                         </div>
 
                         {/*{!!topCats.length && (*/}

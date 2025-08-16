@@ -212,6 +212,11 @@ a { color: inherit; }
   background: var(--panel);
   color: var(--text);
 }
+.checkout-boxes {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--elev);
+}
 
 .row {
   display: flex;

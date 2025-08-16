@@ -7,7 +7,10 @@ import Home from './pages/Home'
 import Product from './pages/Product'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
-import Category from './pages/Category' // NEW
+import Category from './pages/Category'
+import OrderConfirmation from './pages/OrderConfirmation'
+
+
 
 export default function App() {
     return (
@@ -20,6 +23,7 @@ export default function App() {
                     <Route path="/category/:uid" element={<Category />} /> {/* NEW */}
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-confirmation/:orderNumber" element={<OrderConfirmation />} />
                 </Routes>
             </BrowserRouter>
         </ApolloProvider>
