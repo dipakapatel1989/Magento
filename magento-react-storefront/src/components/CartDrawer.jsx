@@ -16,7 +16,7 @@ export default function CartDrawer({ open, onClose }) {
   return (
     <aside className={`cart-drawer ${open ? 'open' : ''}` } aria-hidden={!open} >
       <div className="cart-header">
-        <strong>Your Cart</strong>
+        <strong>My Cart</strong>
         <button className="nav-button" onClick={onClose}>Close</button>
       </div>
 

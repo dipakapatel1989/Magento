@@ -5,6 +5,7 @@ import { ADD_PRODUCTS_TO_CART, CREATE_EMPTY_CART } from '../graphql/mutations'
 import { GET_CART_SUMMARY } from '../graphql/queries'
 import { useCartStore } from '../store/cart'
 import { useState } from 'react'
+import ColorOptions from './ColorOptions'
 
 export default function ProductCard({ product }) {
     const { cartId, setCartId } = useCartStore()
@@ -45,6 +46,12 @@ export default function ProductCard({ product }) {
     const img = product.small_image?.url
     const disabled = creatingCart || addingToCart
 
+    // Pull color options if the product is configurable
+    const isConfigurable = product.__typename === 'ConfigurableProduct'
+    const colorOption = isConfigurable
+        ? product.configurable_options?.find(o => o.attribute_code === 'color')
+        : null
+
     return (
         <div className="card">
             <Link to={`/product/${product.url_key}`} style={{ display: 'block' }}>
@@ -52,7 +59,10 @@ export default function ProductCard({ product }) {
             </Link>
             <div className="card-body">
                 <div className="title">{product.name}</div>
-                <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+                {isConfigurable && !!colorOption?.values?.length && (
+                    <ColorOptions values={colorOption.values} />
+                )}
+                <div className="row" style={{ justifyContent: 'space-between', marginTop: 8, marginBottom: 8 }}>
                     <div className="price">
                         {price?.value} {price?.currency}
                     </div>

@@ -197,8 +197,8 @@ export default function Checkout() {
         <div className="container">
             <h2 className="link-muted" style={{ marginTop: 10 }}>Checkout</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-12 md:grid-cols-12 lg:grid-cols-12" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                <div className="card col-span-1" style={{ padding: 16 }}>
+            <div className="grid-check grid-cols-1 sm:grid-cols-12 md:grid-cols-12 lg:grid-cols-12 gap-4 bg-white rounded-lg shadow-md" >
+                <div className="card col-span-6" style={{ padding: 16 }}>
                     <h3>Contact</h3>
                     <input
                         className="checkout-boxes"
@@ -266,7 +266,7 @@ export default function Checkout() {
                     </button>
                 </div>
 
-                <div className="card col-span-1" style={{ padding: 16 }}>
+                <div className="card col-span-6" style={{ padding: 16 }}>
                     <h3>Order summary</h3>
                     {(cartData?.cart?.items ?? []).map(it => (
                         <div key={it.id} className="row" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
@@ -280,27 +280,18 @@ export default function Checkout() {
                         </div>
                     ))}
                     <div className="row" style={{ justifyContent: 'space-between', marginTop: 12 }}>
-                        <div style={{ color: 'var(--text)' }}>Total</div>
+                        <div>Total</div>
                         <div style={{ fontWeight: 800, fontSize: 18 }}>
                             {grand?.value} {grand?.currency}
                         </div>
                     </div>
-                    <p style={{ color: 'var(--text)' }}>
+                    <p>
                         Choose shipping and payment methods above before placing your order.
                     </p>
                 </div>
             </div>
 
-            <div className="bg">
-                <div className="grid">
-                    <h1 className="text-3xl font-bold underline">
-                        Hello world!
-                    </h1>
-                </div>
-                <div className="grid">
-                    Dipak
-                </div>
-            </div>
+
         </div>
     )
 }

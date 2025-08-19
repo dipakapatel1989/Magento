@@ -23,7 +23,7 @@ export default function Header() {
     const cats = catData?.categories?.items ?? []
 
     return (
-        <header className="header">
+        <header className="header flex-center">
             <div className="header-inner">
                 <button
                     className="icon-btn only-mobile"
@@ -36,7 +36,7 @@ export default function Header() {
 
                 <Link to="/" className="brand" aria-label="Home">
                     <span className="brand-badge" />
-                    <span>Storefront</span>
+                    <span>Best Buy</span>
                 </Link>
 
                 <nav className="nav hide-mobile">
