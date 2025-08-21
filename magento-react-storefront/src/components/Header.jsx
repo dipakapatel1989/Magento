@@ -8,47 +8,55 @@ import CartDrawer from './CartDrawer'
 import NavMenu from './NavMenu'
 
 export default function Header() {
-  const [open, setOpen] = useState(false)
+    const [cartOpen, setCartOpen] = useState(false)
+    const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
-  const cartId = useCartStore(s => s.cartId)
-  const { data: cartData } = useQuery(GET_CART_SUMMARY, {
-    variables: { cartId },
-    skip: !cartId,
-    fetchPolicy: 'cache-and-network'
-  })
+    const cartId = useCartStore(s => s.cartId)
+    const { data: cartData } = useQuery(GET_CART_SUMMARY, {
+        variables: { cartId },
+        skip: !cartId,
+        fetchPolicy: 'cache-and-network'
+    })
 
-  const { data: catData } = useQuery(GET_TOP_CATEGORIES)
-  const qty = cartData?.cart?.total_quantity ?? 0
-  const cats = catData?.categories?.items ?? []
+    const { data: catData } = useQuery(GET_TOP_CATEGORIES)
+    const qty = cartData?.cart?.total_quantity ?? 0
+    const cats = catData?.categories?.items ?? []
 
-  return (
-    <div className="header">
-      <div className="header-inner">
-        <Link to="/" className="brand" aria-label="Home">
-          <span className="brand-badge" />
-          <span>Storefront</span>
-        </Link>
+    return (
+        <header className="header flex-center">
+            <div className="header-inner">
+                <button
+                    className="icon-btn only-mobile"
+                    aria-label="Open menu"
+                    aria-expanded={mobileNavOpen}
+                    onClick={() => setMobileNavOpen(v => !v)}
+                >
+                    ☰
+                </button>
 
-        <nav className="nav">
-          <NavMenu label="Shop" categories={cats} />
-          <ul className="nav">
-            {cats.map((item) => (
-              <li key={item.id}>
-                {item.name}
-              </li>
-      ))}
-          </ul>
-        </nav>
+                <Link to="/" className="brand" aria-label="Home">
+                    <span className="brand-badge" />
+                    <span>Best Buy</span>
+                </Link>
 
-        <div className="spacer" />
+                <nav className="nav hide-mobile">
+                    <NavMenu label="Shop" categories={cats} />
+                </nav>
 
-        <button className="icon-btn" onClick={() => setOpen(true)}>
-          <span>Cart</span>
-          <span className="badge">{qty}</span>
-        </button>
-      </div>
+                <div className="spacer" />
 
-      <CartDrawer open={open} onClose={() => setOpen(false)} />
-    </div>
-  )
+                <button className="icon-btn" onClick={() => setCartOpen(true)} aria-label="Open cart">
+                    <span>Cart</span>
+                    <span className="badge">{qty}</span>
+                </button>
+            </div>
+
+            {/* Mobile slide-down menu */}
+            <div className={`mobile-nav ${mobileNavOpen ? 'open' : ''}`}>
+                <NavMenu label="Browse categories" categories={cats} variant="mobile" onNavigate={() => setMobileNavOpen(false)} />
+            </div>
+
+            <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+        </header>
+    )
 }

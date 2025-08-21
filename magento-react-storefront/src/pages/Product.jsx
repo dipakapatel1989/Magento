@@ -42,7 +42,7 @@ export default function Product() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="container link-muted" style={{ padding: 16 }}>
       <h1>{product.name}</h1>
       {product.media_gallery?.[0]?.url && (
         <img src={product.media_gallery[0].url} alt={product.media_gallery[0].label || product.name} width={400} />

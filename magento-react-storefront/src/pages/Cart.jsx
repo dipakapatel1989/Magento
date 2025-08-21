@@ -42,7 +42,7 @@ export default function Cart() {
       {cart?.items?.map(item => (
         <div key={item.id} style={{ display: 'flex', gap: 12, padding: 8, borderBottom: '1px solid #eee' }}>
           {item.product.small_image?.url && <img src={item.product.small_image.url} alt={item.product.name} width={60} />}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1}}>
             <div>{item.product.name}</div>
             <div>Qty: {item.quantity}</div>
             <div>
