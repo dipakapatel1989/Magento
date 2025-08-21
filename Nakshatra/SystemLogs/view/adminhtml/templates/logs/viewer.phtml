@@ -1,0 +1,352 @@
+<?php
+/**
+ * @var \Magento\Backend\Block\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+
+<div class="admin__page-section">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $escaper->escapeHtml(__('System Logs')) ?></span>
+    </div>
+</div>
+
+<div class="admin__data-grid-wrap">
+    <div class="admin__data-grid-filters-wrap">
+        <div class="admin__data-grid-filters">
+            <div class="admin__control-group">
+                <label class="admin__field-label"><?= $escaper->escapeHtml(__('Log File')) ?></label>
+                <div class="admin__field-control">
+                    <select id="logFile" class="admin__control-select">
+                        <option value="system.log"><?= $escaper->escapeHtml(__('System Log')) ?></option>
+                        <option value="debug.log"><?= $escaper->escapeHtml(__('Debug Log')) ?></option>
+                        <option value="exception.log"><?= $escaper->escapeHtml(__('Exception Log')) ?></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin__control-group">
+                <label class="admin__field-label"><?= $escaper->escapeHtml(__('Level Filter')) ?></label>
+                <div class="admin__field-control">
+                    <select id="levelFilter" class="admin__control-select">
+                        <option value=""><?= $escaper->escapeHtml(__('All Levels')) ?></option>
+                        <option value="error"><?= $escaper->escapeHtml(__('Error')) ?></option>
+                        <option value="warning"><?= $escaper->escapeHtml(__('Warning')) ?></option>
+                        <option value="info"><?= $escaper->escapeHtml(__('Info')) ?></option>
+                        <option value="debug"><?= $escaper->escapeHtml(__('Debug')) ?></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin__control-group">
+                <label class="admin__field-label"><?= $escaper->escapeHtml(__('Search')) ?></label>
+                <div class="admin__field-control">
+                    <input type="text" id="searchFilter" class="admin__control-text"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('Search in logs...')) ?>" />
+                </div>
+            </div>
+
+            <div class="admin__control-group">
+                <div class="admin__field-control">
+                    <button id="refreshBtn" class="action-secondary" type="button">
+                        <span><?= $escaper->escapeHtml(__('Refresh')) ?></span>
+                    </button>
+                    <button id="clearBtn" class="action-secondary action-delete" type="button">
+                        <span><?= $escaper->escapeHtml(__('Clear Log')) ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin__data-grid-filters">
+            <div class="admin__control-group">
+                <div class="admin__field-control">
+                    <label class="admin__field-label">
+                        <input type="checkbox" id="realtimeToggle" class="admin__control-checkbox" />
+                        <span><?= $escaper->escapeHtml(__('Real-time updates')) ?></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="admin__control-group">
+                <div class="admin__field-control">
+                    <button id="exportBtn" class="action-secondary" type="button">
+                        <span><?= $escaper->escapeHtml(__('Export Current View')) ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="log-container">
+    <div class="log-header">
+        <h3 id="logTitle"><?= $escaper->escapeHtml(__('System Log')) ?></h3>
+        <div class="realtime-indicator">
+            <span class="realtime-dot" id="realtimeDot"></span>
+            <span id="realtimeStatus"><?= $escaper->escapeHtml(__('Manual refresh')) ?></span>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span id="fileInfo"><?= $escaper->escapeHtml(__('Loading...')) ?></span>
+        <span id="totalEntries"></span>
+    </div>
+
+    <div class="log-content" id="logContent">
+        <div class="loading"><?= $escaper->escapeHtml(__('Loading logs...')) ?></div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+    require(['jquery', 'Magento_Ui/js/modal/confirm'], function($, confirmation) {
+        'use strict';
+
+        class LogViewer {
+            constructor() {
+                this.currentPage = 1;
+                this.realtimeInterval = null;
+                this.baseUrl = '<?= $escaper->escapeUrl($block->getUrl('systemlogs/logs/api')) ?>';
+                this.clearUrl = '<?= $escaper->escapeUrl($block->getUrl('systemlogs/logs/clear')) ?>';
+
+                this.initializeElements();
+                this.bindEvents();
+                this.loadLogs();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    logFile: $('#logFile'),
+                    levelFilter: $('#levelFilter'),
+                    searchFilter: $('#searchFilter'),
+                    refreshBtn: $('#refreshBtn'),
+                    clearBtn: $('#clearBtn'),
+                    realtimeToggle: $('#realtimeToggle'),
+                    exportBtn: $('#exportBtn'),
+                    logTitle: $('#logTitle'),
+                    realtimeDot: $('#realtimeDot'),
+                    realtimeStatus: $('#realtimeStatus'),
+                    fileInfo: $('#fileInfo'),
+                    totalEntries: $('#totalEntries'),
+                    logContent: $('#logContent'),
+                    pagination: $('#pagination')
+                };
+            }
+
+            bindEvents() {
+                this.elements.logFile.on('change', () => this.onFilterChange());
+                this.elements.levelFilter.on('change', () => this.onFilterChange());
+                this.elements.searchFilter.on('input', this.debounce(() => this.onFilterChange(), 500));
+                this.elements.refreshBtn.on('click', () => this.loadLogs());
+                this.elements.clearBtn.on('click', () => this.clearLog());
+                this.elements.realtimeToggle.on('change', () => this.toggleRealtime());
+                this.elements.exportBtn.on('click', () => this.exportLogs());
+            }
+
+            onFilterChange() {
+                this.currentPage = 1;
+                this.loadLogs();
+            }
+
+            async loadLogs(page = this.currentPage) {
+                try {
+                    this.showLoading();
+
+                    const params = {
+                        file: this.elements.logFile.val(),
+                        page: page,
+                        level: this.elements.levelFilter.val(),
+                        search: this.elements.searchFilter.val()
+                    };
+
+                    const response = await $.get(this.baseUrl, params);
+
+                    if (response.error) {
+                        throw new Error(response.error);
+                    }
+
+                    this.renderLogs(response);
+                    this.currentPage = page;
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+
+            async clearLog() {
+                const self = this;
+                confirmation({
+                    title: '<?= $escaper->escapeJs(__("Clear Log File")) ?>',
+                    content: '<?= $escaper->escapeJs(__("Are you sure you want to clear this log file?")) ?>',
+                    actions: {
+                        confirm: function() {
+                            self.performClearLog();
+                        }
+                    }
+                });
+            }
+
+            async performClearLog() {
+                try {
+                    const response = await $.ajax({
+                        url: this.clearUrl,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ file: this.elements.logFile.val() })
+                    });
+
+                    if (response.error) {
+                        throw new Error(response.error);
+                    }
+
+                    alert('<?= $escaper->escapeJs(__("Log cleared successfully")) ?>');
+                    this.loadLogs();
+                } catch (error) {
+                    alert('<?= $escaper->escapeJs(__("Error clearing log: ")) ?>' + error.message);
+                }
+            }
+
+            renderLogs(data) {
+                // Update file info
+                const selectedOption = this.elements.logFile.find('option:selected').text();
+                this.elements.logTitle.text(selectedOption);
+                this.elements.fileInfo.text(`<?= $escaper->escapeJs(__("Size: ")) ?>${data.fileSize} | <?= $escaper->escapeJs(__("Last modified: ")) ?>${data.lastModified}`);
+                this.elements.totalEntries.text(`${data.pagination.totalEntries} <?= $escaper->escapeJs(__("entries")) ?>`);
+
+                // Render log entries
+                if (data.logs.length === 0) {
+                    this.elements.logContent.html('<div class="empty"><?= $escaper->escapeJs(__("No log entries found")) ?></div>');
+                } else {
+                    const logsHtml = data.logs.map(log => this.renderLogEntry(log)).join('');
+                    this.elements.logContent.html(logsHtml);
+                }
+
+                // Render pagination
+                this.renderPagination(data.pagination);
+            }
+
+            renderLogEntry(log) {
+                return `
+                <div class="log-entry">
+                    <div class="log-meta">
+                        <span class="timestamp">${this.escapeHtml(log.timestamp)}</span>
+                        <span class="log-level ${log.levelClass}">${log.level}</span>
+                        <span class="channel">${this.escapeHtml(log.channel)}</span>
+                    </div>
+                    <div class="log-message">${this.escapeHtml(log.message)}</div>
+                </div>
+            `;
+            }
+
+            renderPagination(pagination) {
+                if (pagination.total <= 1) {
+                    this.elements.pagination.html('');
+                    return;
+                }
+
+                let html = '';
+
+                // Previous button
+                html += `<button class="action-secondary" ${!pagination.hasPrev ? 'disabled' : ''} onclick="logViewer.loadLogs(${pagination.current - 1})">&lt;</button>`;
+
+                // Page numbers
+                const start = Math.max(1, pagination.current - 2);
+                const end = Math.min(pagination.total, pagination.current + 2);
+
+                for (let i = start; i <= end; i++) {
+                    const current = i === pagination.current ? 'current' : '';
+                    html += `<button class="action-secondary ${current}" onclick="logViewer.loadLogs(${i})">${i}</button>`;
+                }
+
+                // Next button
+                html += `<button class="action-secondary" ${!pagination.hasNext ? 'disabled' : ''} onclick="logViewer.loadLogs(${pagination.current + 1})">&gt;</button>`;
+
+                this.elements.pagination.html(html);
+            }
+
+            toggleRealtime() {
+                if (this.elements.realtimeToggle.is(':checked')) {
+                    this.elements.realtimeDot.addClass('active');
+                    this.elements.realtimeStatus.text('<?= $escaper->escapeJs(__("Real-time active")) ?>');
+                    this.realtimeInterval = setInterval(() => this.loadRealtimeUpdates(), 3000);
+                } else {
+                    this.elements.realtimeDot.removeClass('active');
+                    this.elements.realtimeStatus.text('<?= $escaper->escapeJs(__("Manual refresh")) ?>');
+                    if (this.realtimeInterval) {
+                        clearInterval(this.realtimeInterval);
+                        this.realtimeInterval = null;
+                    }
+                }
+            }
+
+            async loadRealtimeUpdates() {
+                try {
+                    const params = {
+                        file: this.elements.logFile.val(),
+                        realtime: '1'
+                    };
+
+                    const response = await $.get(this.baseUrl, params);
+
+                    if (response.logs && response.logs.length > 0) {
+                        this.appendNewLogs(response.logs);
+                    }
+                } catch (error) {
+                    console.error('Realtime update failed:', error);
+                }
+            }
+
+            appendNewLogs(logs) {
+                const entries = logs.map(log => {
+                    return `<div class="log-entry new">${this.renderLogEntry(log).replace('<div class="log-entry">', '').replace('</div>', '')}</div>`;
+                });
+
+                entries.forEach(entry => {
+                    this.elements.logContent.prepend(entry);
+                });
+
+                // Remove 'new' class after animation
+                setTimeout(() => {
+                    $('.log-entry.new').removeClass('new');
+                }, 1000);
+            }
+
+            exportLogs() {
+                const params = new URLSearchParams({
+                    file: this.elements.logFile.val(),
+                    level: this.elements.levelFilter.val(),
+                    search: this.elements.searchFilter.val(),
+                    export: '1'
+                });
+
+                window.open(`${this.baseUrl}?${params.toString()}`, '_blank');
+            }
+
+            showLoading() {
+                this.elements.logContent.html('<div class="loading"><?= $escaper->escapeJs(__("Loading logs...")) ?></div>');
+            }
+
+            showError(message) {
+                this.elements.logContent.html(`<div class="empty"><?= $escaper->escapeJs(__("Error: ")) ?>${this.escapeHtml(message)}</div>`);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+        }
+
+        // Initialize the log viewer
+        window.logViewer = new LogViewer();
+    });
+</script>
