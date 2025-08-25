@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="nakshatra_product360_images" resource="default" engine="innodb" comment="Product 360 Images Table">
+        <column xsi:type="int" name="entity_id" identity="true" nullable="false" unsigned="true" comment="Entity ID"/>
+        <column xsi:type="int" name="product_id" nullable="false" unsigned="true" comment="Product ID"/>
+        <column xsi:type="varchar" name="image_path" nullable="false" length="255" comment="Image Path"/>
+        <column xsi:type="int" name="sort_order" nullable="false" default="0" unsigned="true" comment="Sort Order"/>
+        <column xsi:type="smallint" name="is_active" nullable="false" default="1" unsigned="true" comment="Is Active"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="NAKSHATRA_PRODUCT360_IMAGES_PRODUCT_ID_CATALOG_PRODUCT_ENTITY_ENTITY_ID" table="nakshatra_product360_images" column="product_id" referenceTable="catalog_product_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="NAKSHATRA_PRODUCT360_IMAGES_PRODUCT_ID" indexType="btree">
+            <column name="product_id"/>
+        </index>
+        <index referenceId="NAKSHATRA_PRODUCT360_IMAGES_SORT_ORDER" indexType="btree">
+            <column name="sort_order"/>
+        </index>
+    </table>
+</schema>

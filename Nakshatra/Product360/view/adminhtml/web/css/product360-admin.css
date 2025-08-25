@@ -1,0 +1,295 @@
+/* 360° Admin Panel Styles */
+.product360-admin-preview {
+    margin: 15px 0;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.product360-viewer {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product360-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product360-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.product360-controls {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px;
+    border-radius: 20px;
+}
+
+.product360-controls button {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.product360-controls button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.product360-controls .action-primary {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.product360-controls .action-primary:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+.product360-info {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.product360-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+/* File Uploader Styles */
+.file-uploader._dragover .file-uploader-area {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.file-uploader-area {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.file-uploader-button {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 15px;
+    transition: background-color 0.2s;
+}
+
+.file-uploader-button:hover {
+    background: #0056b3;
+}
+
+.file-uploader-text {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.file-uploader-note {
+    font-size: 13px;
+    color: #666;
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.file-uploader-note ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.file-uploader-note li {
+    margin-bottom: 5px;
+}
+
+/* Progress Indicator */
+.file-uploader-progress {
+    margin: 15px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #28a745;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 13px;
+    color: #666;
+}
+
+/* File Grid */
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.file-uploader-preview {
+    position: relative;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    background: white;
+    overflow: hidden;
+}
+
+.preview-image-container {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.preview-placeholder {
+    color: #ccc;
+    font-size: 24px;
+}
+
+.upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.preview-details {
+    padding: 8px;
+}
+
+.file-name {
+    font-size: 11px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.file-size {
+    font-size: 10px;
+    color: #666;
+}
+
+.file-error {
+    font-size: 10px;
+    color: #dc3545;
+    margin-top: 2px;
+}
+
+.preview-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+.action-delete {
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.action-delete:hover {
+    background: #dc3545;
+}
+
+/* Summary */
+.file-uploader-summary {
+    margin: 15px 0;
+    padding: 10px;
+    background: #e3f2fd;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+    }
+
+    .product360-viewer {
+        height: 200px;
+    }
+}

@@ -1,0 +1,235 @@
+<div class="admin__field-control">
+    <div class="file-uploader-area">
+        <!-- Hidden file input -->
+        <input type="file"
+               name="product[product360_images]"
+               id="file-uploader-input"
+               class="file-uploader-input"
+               style="position: absolute; left: -9999px; top: -9999px;"
+               data-bind="
+                   attr: {
+                       name: inputName,
+                       disabled: disabled,
+                       accept: getAcceptedTypes(),
+                       multiple: isMultipleFiles
+                   },
+                   event: {
+                       change: function(data, event) { return onFilesChoosen(event); }
+                   }
+               " />
+
+        <!-- Upload Area -->
+        <div class="file-uploader-button-container"
+             style="text-align: center; padding: 20px; border: 2px dashed #ccc; border-radius: 6px;"
+             data-bind="css: {'dragover': isDragover()}">
+            <button type="button"
+                    class="action-secondary"
+                    data-bind="
+                        click: function(data, event) {
+                            var input = document.getElementById('file-uploader-input');
+                            if (input && !input.disabled) {
+                                input.click();
+                                console.log('File input clicked');
+                                return false;
+                            }
+                            return true;
+                        },
+                        attr: { disabled: disabled }
+                    "
+                    style="margin-bottom: 10px;">
+                <span>Select 360° Images</span>
+            </button>
+
+            <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                or drag and drop files here
+            </div>
+
+            <!-- ko if: notice -->
+            <div class="admin__field-note" style="text-align: left; max-width: 500px; margin: 0 auto;">
+                <span data-bind="text: notice"></span>
+            </div>
+            <!-- /ko -->
+
+            <div style="font-size: 12px; color: #999; margin-top: 10px;">
+                Allowed types: <span data-bind="text: allowedExtensions"></span>
+                <!-- ko if: maxFileSize -->
+                | Max size: <span data-bind="text: formatFileSize(maxFileSize)"></span>
+                <!-- /ko -->
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <!-- ko if: totalFiles() > 0 -->
+        <div class="file-upload-progress" style="margin-top: 15px;">
+            <div style="width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; margin-bottom: 5px;">
+                <div style="height: 100%; background: #4caf50; transition: width 0.3s;"
+                     data-bind="style: {width: getUploadProgress() + '%'}"></div>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                <span data-bind="text: uploadedFiles"></span> of <span data-bind="text: totalFiles"></span> files uploaded
+                (<span data-bind="text: getUploadProgress"></span>%)
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- Action Buttons -->
+        <!-- ko if: value().length -->
+        <div class="file-uploader-actions" style="margin: 20px 0; text-align: center; border-top: 1px solid #e3e3e3; padding-top: 20px;">
+            <button type="button"
+                    class="action-primary"
+                    data-bind="
+                        click: saveImages,
+                        css: {disabled: isSaving()},
+                        attr: {disabled: isSaving()}
+                    "
+                    style="margin-right: 10px;">
+                <!-- ko if: isSaving() -->
+                <span>Saving...</span>
+                <!-- /ko -->
+                <!-- ko ifnot: isSaving() -->
+                <span>Save 360° Images</span>
+                <!-- /ko -->
+            </button>
+
+            <button type="button"
+                    class="action-secondary"
+                    data-bind="
+                        click: function() {
+                            value.removeAll();
+                            totalFiles(0);
+                            uploadedFiles(0);
+                            error('');
+                        }
+                    ">
+                <span>Clear All</span>
+            </button>
+
+            <!-- Save Status -->
+            <!-- ko if: isSaving() -->
+            <div style="display: inline-block; margin-left: 10px; color: #666;">
+                <span>Processing images...</span>
+            </div>
+            <!-- /ko -->
+        </div>
+        <!-- /ko -->
+
+        <!-- File List -->
+        <!-- ko if: value().length -->
+        <div class="uploaded-files" style="margin-top: 20px;">
+            <div style="font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <span>
+                    <span data-bind="text: value().length"></span> image(s) uploaded
+                </span>
+                <div style="font-size: 12px; color: #666; font-weight: normal;">
+                    <!-- ko if: productId -->
+                    Product ID: <span data-bind="text: productId"></span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: productId -->
+                    <span style="color: #f39c12;">⚠ Product ID not set</span>
+                    <!-- /ko -->
+                </div>
+            </div>
+
+            <div class="image-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
+                <!-- ko foreach: value -->
+                <!-- ko template: {
+                    name: $parent.previewTmpl,
+                    data: {
+                        file: $data,
+                        parent: $parent
+                    }
+                } -->
+                <!-- /ko -->
+                <!-- /ko -->
+            </div>
+
+            <!-- Sort Instructions -->
+            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 12px; color: #666;">
+                <strong>Tip:</strong> Images are automatically sorted by filename. For best results, name your files in sequence (e.g., image_01.jpg, image_02.jpg, etc.).
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- Empty State -->
+        <!-- ko if: !value().length && totalFiles() === 0 -->
+        <div style="text-align: center; padding: 40px 0; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">🔄</div>
+            <div style="font-size: 16px; margin-bottom: 5px;">No 360° images uploaded yet</div>
+            <div style="font-size: 14px;">Upload images in sequence for smooth 360° rotation</div>
+        </div>
+        <!-- /ko -->
+
+        <!-- Save Success Message -->
+        <!-- ko if: saveSuccess -->
+        <div class="message message-success" style="margin-top: 15px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 4px;">
+            <span>360° images saved successfully!</span>
+        </div>
+        <!-- /ko -->
+    </div>
+
+    <!-- Error Display -->
+    <!-- ko if: error -->
+    <div class="admin__field-error" style="margin-top: 10px;">
+        <span data-bind="text: error"></span>
+    </div>
+    <!-- /ko -->
+
+    <!-- Loading Overlay -->
+    <!-- ko if: isSaving() -->
+    <div class="loading-overlay" style="position: relative;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 100;">
+            <div style="text-align: center;">
+                <div class="admin__loading-mask" style="display: inline-block; margin-bottom: 10px;"></div>
+                <div>Saving images to database...</div>
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+</div>
+
+<style>
+    .file-uploader-area .dragover {
+        border-color: #007bdb !important;
+        background-color: #f0f8ff !important;
+    }
+
+    .image-grid {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #e3e3e3;
+        border-radius: 4px;
+        padding: 15px;
+    }
+
+    .file-uploader-actions button:disabled,
+    .file-uploader-actions button.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .admin__loading-mask {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bdb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .message {
+        margin: 0;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .message-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+</style>

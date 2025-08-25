@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Interface to Implementation mapping -->
+    <preference for="Nakshatra\Product360\Api\Product360ImageRepositoryInterface" type="Nakshatra\Product360\Model\Product360ImageRepository"/>
+
+    <!-- Add modifier to existing product form data provider -->
+    <type name="Magento\Catalog\Ui\DataProvider\Product\Form\ProductDataProvider">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="product360_images" xsi:type="array">
+                    <item name="class" xsi:type="string">Nakshatra\Product360\Ui\DataProvider\Product\Form\Modifier\Product360Images</item>
+                    <item name="sortOrder" xsi:type="number">50</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Image Uploader Configuration -->
+    <type name="Nakshatra\Product360\Model\ImageUploader">
+        <arguments>
+            <argument name="baseTmpPath" xsi:type="string">product360/tmp</argument>
+            <argument name="basePath" xsi:type="string">product360</argument>
+            <argument name="allowedExtensions" xsi:type="array">
+                <item name="jpg" xsi:type="string">jpg</item>
+                <item name="jpeg" xsi:type="string">jpeg</item>
+                <item name="png" xsi:type="string">png</item>
+                <item name="gif" xsi:type="string">gif</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Nakshatra\Product360\Controller\Adminhtml\Image\Upload">
+        <arguments>
+            <argument name="jsonFactory" xsi:type="object">Magento\Framework\Controller\Result\JsonFactory</argument>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem</argument>
+            <argument name="uploaderFactory" xsi:type="object">Magento\Framework\File\UploaderFactory</argument>
+            <argument name="storeManager" xsi:type="object">Magento\Store\Model\StoreManagerInterface</argument>
+        </arguments>
+    </type>
+
+    <type name="Nakshatra\Product360\Controller\Adminhtml\Image\Save">
+        <arguments>
+            <argument name="jsonFactory" xsi:type="object">Magento\Framework\Controller\Result\JsonFactory</argument>
+            <argument name="imageRepository" xsi:type="object">Nakshatra\Product360\Api\Product360ImageRepositoryInterface</argument>
+            <argument name="imageFactory" xsi:type="object">Nakshatra\Product360\Model\Product360ImageFactory</argument>
+            <argument name="imageUploader" xsi:type="object">Nakshatra\Product360\Model\ImageUploader</argument>
+            <argument name="logger" xsi:type="object">Psr\Log\LoggerInterface</argument>
+        </arguments>
+    </type>
+
+</config>
