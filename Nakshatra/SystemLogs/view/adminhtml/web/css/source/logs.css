@@ -107,6 +107,22 @@
     color: #666;
 }
 
+.admin__data-grid-filters {
+    display: inline-flex;
+    margin-left: 0;
+    margin-right: 6px;
+}
+.admin__control-select, select {
+    margin-right: 2rem;
+}
+.action-secondary {
+    margin: 2rem;
+}
+
+.admin__control-checkbox span{
+    margin: 2rem;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; background: #c3e6cb; }
     to { opacity: 1; }
