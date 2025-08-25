@@ -1,0 +1,46 @@
+<div class="file-uploader-preview"
+     data-bind="css: {'_error': file.error, '_uploading': file.uploading}">
+
+    <div class="preview-image-container">
+        <!-- ko if: file.previewUrl || file.url -->
+        <img class="preview-image"
+             data-bind="attr: {
+                 src: file.previewUrl || file.url,
+                 alt: file.name
+             }" />
+        <!-- /ko -->
+
+        <!-- ko if: !file.previewUrl && !file.url -->
+        <div class="preview-placeholder">
+            <span class="placeholder-icon">📷</span>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: file.uploading -->
+        <div class="upload-overlay">
+            <div class="spinner"></div>
+        </div>
+        <!-- /ko -->
+    </div>
+
+    <div class="preview-details">
+        <div class="file-name" data-bind="text: file.name, attr: {title: file.name}"></div>
+
+        <!-- ko if: file.size -->
+        <div class="file-size" data-bind="text: parent.formatFileSize(file.size)"></div>
+        <!-- /ko -->
+
+        <!-- ko if: file.error -->
+        <div class="file-error" data-bind="text: file.error"></div>
+        <!-- /ko -->
+    </div>
+
+    <div class="preview-actions">
+        <button type="button"
+                class="action-delete"
+                data-bind="click: parent.removeFile.bind(parent, file)"
+                title="Remove">
+            ×
+        </button>
+    </div>
+</div>

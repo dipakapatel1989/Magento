@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <product360>
+            <general>
+                <enabled>1</enabled>
+                <auto_play>0</auto_play>
+                <rotation_speed>100</rotation_speed>
+                <show_controls>1</show_controls>
+                <viewer_width>100%</viewer_width>
+                <viewer_height>400px</viewer_height>
+            </general>
+        </product360>
+    </default>
+</config>
