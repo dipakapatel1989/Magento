@@ -12,7 +12,7 @@
 </div>
 
 <div class="admin__data-grid-wrap">
-    <div class="admin__data-grid-filters-wrap">
+    <div class="admin__data-grid-filters">
         <div class="admin__data-grid-filters">
             <div class="admin__control-group">
                 <label class="admin__field-label"><?= $escaper->escapeHtml(__('Log File')) ?></label>
@@ -63,7 +63,7 @@
                 <div class="admin__field-control">
                     <label class="admin__field-label">
                         <input type="checkbox" id="realtimeToggle" class="admin__control-checkbox" />
-                        <span><?= $escaper->escapeHtml(__('Real-time updates')) ?></span>
+                        <span class="action-secondary"><?= $escaper->escapeHtml(__('Real-time updates')) ?></span>
                     </label>
                 </div>
             </div>
