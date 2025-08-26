@@ -1,11 +1,41 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="product.info.media">
+        <!-- Replace the default product gallery with 360 viewer when 360 images are available -->
+        <referenceContainer name="product.info.media">
+            <!-- Add 360 viewer block before the default gallery -->
             <block class="Nakshatra\Product360\Block\Product\View\Product360"
                    name="product.360.viewer"
                    template="Nakshatra_Product360::product/view/product360.phtml"
-                   after="product.info.media.image" />
-        </referenceBlock>
+                   before="product.info.media.image">
+                <arguments>
+                    <argument name="gallery_options" xsi:type="array">
+                        <item name="nav" xsi:type="string">thumbs</item>
+                        <item name="loop" xsi:type="boolean">true</item>
+                        <item name="keyboard" xsi:type="boolean">true</item>
+                        <item name="arrows" xsi:type="boolean">true</item>
+                        <item name="allowfullscreen" xsi:type="boolean">true</item>
+                        <item name="showCaption" xsi:type="boolean">false</item>
+                        <item name="width" xsi:type="number">700</item>
+                        <item name="thumbwidth" xsi:type="number">110</item>
+                        <item name="thumbheight" xsi:type="number">110</item>
+                        <item name="height" xsi:type="number">700</item>
+                        <item name="transitionduration" xsi:type="number">500</item>
+                        <item name="transition" xsi:type="string">slide</item>
+                        <item name="navarrows" xsi:type="boolean">true</item>
+                        <item name="navtype" xsi:type="string">slides</item>
+                        <item name="navdir" xsi:type="string">horizontal</item>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+        <!-- Add conditional CSS and JS for gallery hiding -->
+        <referenceContainer name="head.additional">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="product.360.head"
+                   template="Nakshatra_Product360::product/view/head.phtml" />
+        </referenceContainer>
     </body>
 </page>

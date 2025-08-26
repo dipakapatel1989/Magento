@@ -15,13 +15,14 @@ define([
         var $resetBtn = $element.find('.reset-btn');
         var $fullscreenBtn = $element.find('.fullscreen-btn');
         var $instructions = $element.find('.product-360-instructions');
+        var $counter = $element.find('.product-360-counter');
 
         var images = config.images || [];
         var currentFrame = 0;
         var isLoading = true;
         var isPlaying = false;
         var isDragging = false;
-        var isAutoRotating = true;
+        var isAutoRotating = false;
         var rotationInterval;
         var loadedImages = [];
         var totalFrames = images.length;
@@ -40,16 +41,27 @@ define([
         init();
 
         function init() {
+            // Hide default gallery immediately
+            hideDefaultGallery();
+
             preloadImages();
             bindEvents();
+            updateCounter();
 
             if (!showControls) {
                 $controls.hide();
             }
         }
 
+        function hideDefaultGallery() {
+            // Ensure default gallery is hidden
+            $('.gallery-placeholder, [data-gallery-role="gallery-placeholder"], .fotorama, .product-image-main, .product-image-thumbs').hide();
+            $('body').addClass('product-360-active');
+        }
+
         function preloadImages() {
             var loadCount = 0;
+            loadedImages = new Array(totalFrames);
 
             images.forEach(function(imageSrc, index) {
                 var img = new Image();
@@ -75,11 +87,21 @@ define([
 
         function onImagesLoaded() {
             isLoading = false;
-            $loading.hide();
-            $instructions.show();
+            $loading.fadeOut(300);
+            $imageContainer.fadeIn(300);
+            $instructions.fadeIn(300);
+
+            // Auto-hide instructions after 3 seconds
+            setTimeout(function() {
+                if (!isDragging && !isAutoRotating) {
+                    $instructions.fadeOut(300);
+                }
+            }, 3000);
 
             if (autoPlay) {
-                startAutoRotation();
+                setTimeout(function() {
+                    startAutoRotation();
+                }, 1000);
             }
         }
 
@@ -91,6 +113,8 @@ define([
                     isDragging = true;
                     stopAutoRotation();
                     $imageContainer.addClass('dragging');
+                    $instructions.fadeOut(200);
+
                     var startX = e.pageX;
                     var startFrame = currentFrame;
 
@@ -122,6 +146,8 @@ define([
                 if (!isLoading && e.originalEvent.touches.length === 1) {
                     isDragging = true;
                     stopAutoRotation();
+                    $instructions.fadeOut(200);
+
                     var startX = e.originalEvent.touches[0].pageX;
                     var startFrame = currentFrame;
 
@@ -192,12 +218,18 @@ define([
                     }
                 }
             });
+
+            // Fullscreen change events
+            $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function() {
+                updateFullscreenButton();
+            });
         }
 
         function setFrame(frame) {
-            if (frame >= 0 && frame < totalFrames && loadedImages[frame]) {
+            if (frame >= 0 && frame < totalFrames && images[frame]) {
                 currentFrame = frame;
                 $image.attr('src', images[frame]);
+                updateCounter();
             }
         }
 
@@ -222,6 +254,7 @@ define([
             $playPauseBtn.find('.play-icon').hide();
             $playPauseBtn.find('.pause-icon').show();
             $container.addClass('auto-rotating');
+            $instructions.fadeOut(300);
 
             rotationInterval = setInterval(function() {
                 nextFrame();
@@ -241,6 +274,10 @@ define([
             }
         }
 
+        function updateCounter() {
+            $counter.find('.current-frame').text(currentFrame + 1);
+        }
+
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 enterFullscreen();
@@ -250,14 +287,14 @@ define([
         }
 
         function enterFullscreen() {
-            if ($container[0].requestFullscreen) {
-                $container[0].requestFullscreen();
-            } else if ($container[0].webkitRequestFullscreen) {
-                $container[0].webkitRequestFullscreen();
-            } else if ($container[0].msRequestFullscreen) {
-                $container[0].msRequestFullscreen();
+            var elem = $container[0];
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
             }
-            $container.addClass('fullscreen');
         }
 
         function exitFullscreen() {
@@ -268,13 +305,24 @@ define([
             } else if (document.msExitFullscreen) {
                 document.msExitFullscreen();
             }
-            $container.removeClass('fullscreen');
+        }
+
+        function updateFullscreenButton() {
+            if (document.fullscreenElement) {
+                $container.addClass('fullscreen');
+                $fullscreenBtn.find('.fullscreen-enter').hide();
+                $fullscreenBtn.find('.fullscreen-exit').show();
+            } else {
+                $container.removeClass('fullscreen');
+                $fullscreenBtn.find('.fullscreen-enter').show();
+                $fullscreenBtn.find('.fullscreen-exit').hide();
+            }
         }
 
         // Cleanup on destroy
         function destroy() {
             stopAutoRotation();
-            $(document).off('keydown');
+            $(document).off('keydown fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange');
             $imageContainer.off();
             $controls.off();
         }

@@ -1,90 +1,389 @@
 <?php
 /** @var \Nakshatra\Product360\Block\Product\View\Product360 $block */
 
-// Add debugging information
-echo "<!-- Product360 Template Debug Start -->";
-echo "<!-- Module enabled: " . ($block->getProduct360Helper()->isEnabled() ? 'Yes' : 'No') . " -->";
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$registry = $objectManager->get(\Magento\Framework\Registry::class);
+$product = $registry->registry('current_product');
 
-$product = $block->getProduct();
-if ($product) {
-    echo "<!-- Product ID: " . $product->getId() . " -->";
-    echo "<!-- Enable 360 View attribute: " . ($product->getData('enable_360_view') ? 'Yes' : 'No') . " -->";
-    echo "<!-- Number of 360 images: " . count($block->get360Images()) . " -->";
-} else {
-    echo "<!-- No product found -->";
+if ($product && $product->getData('enable_360_view')) {
+    $product360Block = $objectManager->create(\Nakshatra\Product360\Block\Product\View\Product360::class);
+    $images360 = $product360Block->get360Images();
+
+    if (!empty($images360)): ?>
+        <style>
+            /* Hide default gallery when 360° viewer is available */
+            .catalog-product-view .product.media .gallery-placeholder,
+            .catalog-product-view .product.media [data-gallery-role="gallery-placeholder"],
+            .catalog-product-view .product.media .product-image-main,
+            .catalog-product-view .product.media .product-image-thumbs,
+            .catalog-product-view .fotorama,
+            .catalog-product-view .fotorama__wrap {
+                display: none !important;
+            }
+
+            /* Ensure 360 viewer takes full media container */
+            .catalog-product-view .product.media {
+                position: relative;
+            }
+
+            .catalog-product-view .product-360-viewer {
+                width: 100%;
+                max-width: none;
+            }
+        </style>
+
+        <script>
+            require(['jquery'], function($) {
+                $(document).ready(function() {
+                    // Additional script to ensure gallery is hidden
+                    $('.gallery-placeholder, [data-gallery-role="gallery-placeholder"], .fotorama').hide();
+
+                    // Mark body as having 360 viewer
+                    $('body').addClass('product-360-available');
+                });
+            });
+        </script>
+    <?php endif;
 }
 
-if (!$product->getId()=='2043') {
-    if (!$block->canShow()) {
-        echo "<!-- Product360 Widget: Cannot show (conditions not met) -->";
-        return;
-    }
+
+
+
+$canShow360 = $block->canShow();
+
+// Only show if we have 360 images and conditions are met
+if (!$canShow360 || empty($images360)) {
+    return;
 }
-$images = $block->get360Images();
-echo $block->escapeUrl($images[0]) ;
-echo "<!-- Product360 Widget: Rendering -->";
 ?>
 
-<div class="product-360-viewer" id="product-360-viewer">
-    <div class="product-360-container">
-        <div class="product-360-images">
-            <?php $images = $block->get360Images(); ?>
-            <?php if (!empty($images)): ?>
-                <img id="product-360-current-image"
-                     src="<?= $block->escapeUrl($images[0]) ?>"
-                     alt="<?= $block->escapeHtml(__('360° Product View')) ?>" />
-            <?php else: ?>
-                <div>No 360° images available</div>
-            <?php endif; ?>
+<div class="product-360-viewer" id="product-360-viewer" data-role="360-viewer">
+    <div class="product-360-container" data-gallery-role="360-container">
+
+        <!-- Loading indicator -->
+        <div class="product-360-loading" id="product-360-loading" style="display: block;">
+            <div class="loading-spinner"></div>
+            <span><?= $block->escapeHtml(__('Loading 360° View...')) ?></span>
         </div>
 
+        <!-- Main 360 image display area -->
+        <div class="product-360-image-container" id="product-360-image-container" style="display: none;">
+            <img class="product-360-image"
+                 id="product-360-current-image"
+                 src="<?= $block->escapeUrl($images360[0]) ?>"
+                 alt="<?= $block->escapeHtml(__('360° Product View')) ?>"
+                 draggable="false" />
+
+            <!-- 360 degree indicator -->
+            <div class="product-360-indicator">
+                <span class="indicator-icon">↻</span>
+                <span class="indicator-text"><?= $block->escapeHtml(__('360°')) ?></span>
+            </div>
+        </div>
+
+        <!-- Instructions overlay -->
+        <div class="product-360-instructions" id="product-360-instructions" style="display: none;">
+            <div class="instructions-content">
+                <span class="drag-icon">⟷</span>
+                <span><?= $block->escapeHtml(__('Drag to rotate • Click play to auto-rotate')) ?></span>
+            </div>
+        </div>
+
+        <!-- Control buttons -->
         <?php if ($block->getConfig()['showControls']): ?>
-            <div class="product-360-controls">
-                <button type="button" class="btn-360-play" id="btn-360-play">
-                    <span><?= $block->escapeHtml(__('Play')) ?></span>
+            <div class="product-360-controls" id="product-360-controls">
+                <button type="button" class="control-btn play-pause-btn" id="play-pause-btn" title="<?= $block->escapeHtml(__('Play/Pause Auto Rotation')) ?>">
+                    <span class="play-icon">▶</span>
+                    <span class="pause-icon" style="display: none;">⏸</span>
                 </button>
-                <button type="button" class="btn-360-pause" id="btn-360-pause" style="display:none;">
-                    <span><?= $block->escapeHtml(__('Pause')) ?></span>
+                <button type="button" class="control-btn reset-btn" id="reset-btn" title="<?= $block->escapeHtml(__('Reset to Start')) ?>">
+                    <span>⟲</span>
+                </button>
+                <button type="button" class="control-btn fullscreen-btn" id="fullscreen-btn" title="<?= $block->escapeHtml(__('Toggle Fullscreen')) ?>">
+                    <span class="fullscreen-enter">⛶</span>
+                    <span class="fullscreen-exit" style="display: none;">⛴</span>
                 </button>
             </div>
         <?php endif; ?>
+
+        <!-- Frame counter -->
+        <div class="product-360-counter" id="product-360-counter">
+            <span class="current-frame">1</span>
+            <span>/</span>
+            <span class="total-frames"><?= count($images360) ?></span>
+        </div>
+    </div>
+
+    <!-- Hidden image preloader -->
+    <div class="product-360-preloader" style="display: none;">
+        <?php foreach ($images360 as $index => $imageUrl): ?>
+            <img src="<?= $block->escapeUrl($imageUrl) ?>"
+                 data-frame="<?= $index ?>"
+                 alt="Frame <?= $index + 1 ?>" />
+        <?php endforeach; ?>
     </div>
 </div>
 
 <script type="text/x-magento-init">
     {
         "#product-360-viewer": {
-            "Nakshatra_Product360/js/product-360-viewer": <?= /* @noEscape */ $block->getJsonConfig() ?>
+            "Nakshatra_Product360/js/product360-viewer": <?= /* @noEscape */ $block->getJsonConfig() ?>
     }
 }
 </script>
 
 <style>
+    /* Base 360 viewer styles */
     .product-360-viewer {
-        margin: 20px 0;
-        text-align: center;
-        border: 2px solid red; /* Temporary debug border */
-    }
-    .product-360-container {
-        display: inline-block;
         position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background: #f8f8f8;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .product-360-images img {
-        max-width: 100%;
-        height: auto;
+
+    .product-360-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%; /* 1:1 aspect ratio */
+        background: #fff;
     }
-    .product-360-controls {
-        margin-top: 10px;
+
+    .product-360-image-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: grab;
+        user-select: none;
     }
-    .product-360-controls button {
-        margin: 0 5px;
-        padding: 8px 16px;
-        background: #007bff;
+
+    .product-360-image-container.dragging {
+        cursor: grabbing;
+    }
+
+    .product-360-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+    /* Loading indicator */
+    .product-360-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 360 degree indicator */
+    .product-360-indicator {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
         color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 5;
+    }
+
+    .indicator-icon {
+        font-size: 16px;
+        animation: rotate360 2s linear infinite;
+    }
+
+    @keyframes rotate360 {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Instructions overlay */
+    .product-360-instructions {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        text-align: center;
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    .instructions-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .drag-icon {
+        font-size: 18px;
+    }
+
+    /* Control buttons */
+    .product-360-controls {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+
+    .control-btn {
+        width: 40px;
+        height: 40px;
         border: none;
-        border-radius: 4px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
         cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: scale(1.1);
+    }
+
+    .control-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Frame counter */
+    .product-360-counter {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 5;
+    }
+
+    /* Fullscreen styles */
+    .product-360-container.fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        padding-bottom: 0 !important;
+        z-index: 9999 !important;
+        background: #000;
+    }
+
+    .product-360-container.fullscreen .product-360-image {
+        object-fit: contain;
+    }
+
+    /* Auto-rotating animation */
+    .product-360-container.auto-rotating .product-360-indicator .indicator-icon {
+        animation: rotate360 1s linear infinite;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .product-360-viewer {
+            max-width: 100%;
+        }
+
+        .product-360-instructions {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+
+        .control-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 14px;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .product-360-image-container {
+            cursor: default;
+        }
+
+        .product-360-image-container.dragging {
+            cursor: default;
+        }
+
+        .product-360-instructions .drag-icon {
+            display: none;
+        }
+
+        .product-360-instructions .instructions-content::before {
+            content: "👆 ";
+        }
+    }
+
+    /* Replace default gallery when 360 is active */
+    .product-360-active .product.media .product-image-main {
+        display: none !important;
+    }
+
+    .product-360-active .product.media .product-image-thumbs {
+        display: none !important;
+    }
+
+    /* Hide default gallery container */
+    .catalog-product-view .product-360-active [data-gallery-role="gallery-placeholder"] {
+        display: none !important;
     }
 </style>
 
-<!-- Product360 Template Debug End -->
+<script>
+    // Add class to body to indicate 360 is active and hide default gallery
+    require(['jquery'], function($) {
+        $(document).ready(function() {
+            if ($('#product-360-viewer').length) {
+                $('body').addClass('product-360-active');
+
+                // Hide the default gallery container
+                $('.gallery-placeholder, [data-gallery-role="gallery-placeholder"]').hide();
+                $('.product-image-main, .product-image-thumbs').hide();
+            }
+        });
+    });
+</script>
