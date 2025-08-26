@@ -1,0 +1,301 @@
+
+<?php
+/** @var \Nakshatra\Product360\Block\Product\View\Product360 $block */
+
+// Check if module is enabled and 360 images are available
+if (!$block->canShow()) {
+    return;
+}
+
+$product = $block->getProduct();
+$images = $block->get360Images();
+$config = $block->getConfig();
+?>
+
+<div class="product-360-viewer" id="product-360-viewer" data-mage-init='{"Nakshatra_Product360/js/product360-viewer": <?= $block->escapeHtml($block->getJsonConfig()) ?>}'>
+    <div class="product-360-container">
+        <!-- Main 360 Image Display -->
+        <div class="product-360-image-container">
+            <div class="product-360-loading">
+                <span><?= $block->escapeHtml(__('Loading 360° View...')) ?></span>
+            </div>
+
+            <img class="product-360-image"
+                 id="product-360-current-image"
+                 src="<?= $block->escapeUrl($images[0]) ?>"
+                 alt="<?= $block->escapeHtml(__('360° Product View')) ?>"
+                 style="display: none;" />
+
+            <!-- Instructions -->
+            <div class="product-360-instructions" style="display: none;">
+                <span class="desktop-instruction"><?= $block->escapeHtml(__('Drag to rotate • Click to play/pause')) ?></span>
+                <span class="mobile-instruction"><?= $block->escapeHtml(__('Swipe to rotate • Tap to play/pause')) ?></span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <?php if ($config['showControls']): ?>
+            <div class="product-360-controls">
+                <button type="button" class="btn-control play-pause-btn" id="btn-360-play-pause">
+                    <span class="play-icon"><?= $block->escapeHtml(__('▶ Play')) ?></span>
+                    <span class="pause-icon" style="display:none;"><?= $block->escapeHtml(__('⏸ Pause')) ?></span>
+                </button>
+
+                <button type="button" class="btn-control reset-btn" id="btn-360-reset">
+                    <span><?= $block->escapeHtml(__('⟲ Reset')) ?></span>
+                </button>
+
+                <button type="button" class="btn-control fullscreen-btn" id="btn-360-fullscreen">
+                    <span><?= $block->escapeHtml(__('⛶ Fullscreen')) ?></span>
+                </button>
+
+                <div class="frame-counter">
+                    <span class="current-frame">1</span> / <span class="total-frames"><?= count($images) ?></span>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Progress indicator -->
+        <div class="product-360-progress">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Preload all images -->
+    <div class="product-360-preload" style="display: none;">
+        <?php foreach ($images as $index => $imageUrl): ?>
+            <?php if ($index > 0): // Skip first image as it's already loaded ?>
+                <img src="<?= $block->escapeUrl($imageUrl) ?>" alt="" />
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<style>
+    .product-360-viewer {
+        position: relative;
+        max-width: 100%;
+        margin: 0 auto;
+        background: #f8f8f8;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .product-360-container {
+        position: relative;
+        background: #fff;
+    }
+
+    .product-360-image-container {
+        position: relative;
+        text-align: center;
+        overflow: hidden;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .product-360-image-container.dragging {
+        cursor: grabbing;
+    }
+
+    .product-360-image {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        transition: opacity 0.1s ease;
+    }
+
+    .product-360-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 4px;
+        z-index: 10;
+    }
+
+    .product-360-instructions {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 5;
+    }
+
+    .mobile-instruction {
+        display: none;
+    }
+
+    .product-360-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-top: 1px solid #ddd;
+    }
+
+    .btn-control {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-control:hover {
+        background: #0056b3;
+    }
+
+    .btn-control:active {
+        transform: translateY(1px);
+    }
+
+    .frame-counter {
+        background: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+        color: #666;
+    }
+
+    .product-360-progress {
+        height: 3px;
+        background: #e0e0e0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: #007bff;
+        width: 0%;
+        transition: width 0.1s ease;
+    }
+
+    .product-360-container.auto-rotating .product-360-progress .progress-bar {
+        background: #28a745;
+    }
+
+    .product-360-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+        background: #000;
+        border-radius: 0;
+    }
+
+    .product-360-container.fullscreen .product-360-image {
+        max-height: calc(100vh - 120px);
+        object-fit: contain;
+    }
+
+    .product-360-preload {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .desktop-instruction {
+            display: none;
+        }
+
+        .mobile-instruction {
+            display: inline;
+        }
+
+        .product-360-controls {
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .btn-control {
+            padding: 10px 12px;
+            font-size: 11px;
+        }
+
+        .frame-counter {
+            order: -1;
+            flex: 1 1 100%;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .product-360-viewer {
+            background: #1a1a1a;
+        }
+
+        .product-360-container {
+            background: #2d2d2d;
+        }
+
+        .product-360-controls {
+            background: #1a1a1a;
+            border-top-color: #444;
+        }
+
+        .frame-counter {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #ccc;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        .product-360-controls,
+        .product-360-instructions,
+        .product-360-progress {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Accessibility improvements -->
+<script>
+    require(['jquery'], function($) {
+        $(document).ready(function() {
+            // Add ARIA attributes
+            $('#product-360-viewer').attr({
+                'role': 'img',
+                'aria-label': '<?= $block->escapeHtml(__('Interactive 360° product view')) ?>',
+                'tabindex': '0'
+            });
+
+            // Keyboard navigation
+            $('#product-360-viewer').on('keydown', function(e) {
+                if (e.which === 13 || e.which === 32) { // Enter or Space
+                    e.preventDefault();
+                    $('#btn-360-play-pause').click();
+                }
+            });
+        });
+    });
+</script>
